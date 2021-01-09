@@ -347,3 +347,10 @@ healthchecksdb
 
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
+
+# Ignore Dependencies folder (GLEW, GLFW)
+Dependencies
+
+#ignore header files (glm, stb_image.h)
+glm
+stb_image.h

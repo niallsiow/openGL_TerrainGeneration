@@ -31,7 +31,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vertex.vs" />
-    <None Include="fragmentShader.fs" />
+    <None Include="fragmentShader.frag" />
+    <None Include="vertex.vert" />
+    <None Include="smoothSine.vert" />
   </ItemGroup>
 </Project>

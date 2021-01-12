@@ -1,4 +1,6 @@
 #version 330 core
+// FRAGMENT SHADER
+
 out vec4 FragColor;
 
 void main()

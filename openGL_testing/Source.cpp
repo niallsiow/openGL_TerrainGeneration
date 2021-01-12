@@ -20,18 +20,21 @@
 
 
 void GenerateLineOfPoints(float* pointLine, float spaceBetweenPoints, int numberOfPoints);
-
 void GenerateGridOfPoints(float* pointGrid, int gridHeight, int gridLength, float spaceBetweenPoints);
-
 void CenterGrid(float* pointGrid, int indicesInPointGrid, int gridHeight, int gridLength, float spaceBetweenPoints);
-
 void GenerateGridIndices(unsigned int* indiceArray, int gridLength, int indices);
 
 void Create_Y_Sine_Displacement(float* pointGrid, int indices, float displacement, float smoothness);
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-
 void processInput(GLFWwindow *window);
+
+// camera
+glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool isWireframeActive = false;
 
 int main(void)
 {
@@ -71,7 +74,7 @@ int main(void)
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
-	Shader ourShader("vertex.vs", "fragmentShader.fs");
+	Shader ourShader("Shaders/smoothSine.vert", "Shaders/fragmentShader.frag");
 
 	int width, height, nrChannels;
 	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
@@ -146,16 +149,17 @@ int main(void)
 	};
 
 
-	float spaceBetweenPoints = 0.1f;
-	int gridHeight = 20;
-	int gridLength = 40;
+	float spaceBetweenPoints = 0.05f;
+	int gridHeight = 80;
+	int gridLength = 80;
 	int indicesInPointGrid = gridHeight * gridLength * 3;
 	float* pointGrid = new float[indicesInPointGrid];
 
 	GenerateGridOfPoints(pointGrid, gridHeight, gridLength, spaceBetweenPoints);
 	CenterGrid(pointGrid, indicesInPointGrid, gridHeight, gridLength, spaceBetweenPoints);
-	Create_Y_Sine_Displacement(pointGrid, indicesInPointGrid, 0.2f, 5.0f);
+	// Create_Y_Sine_Displacement(pointGrid, indicesInPointGrid, 0.1f, 5.0f);
 
+	
 
 	int numberOfTrianglesInGrid = 2 * (gridHeight - 1) * (gridLength - 1);
 	int indicesToDrawGridTriangles = numberOfTrianglesInGrid * 3;
@@ -163,6 +167,7 @@ int main(void)
 	unsigned int*  gridIndices = new unsigned int[indicesToDrawGridTriangles];
 
 	GenerateGridIndices(gridIndices, gridLength, indicesToDrawGridTriangles);
+
 
 
 	
@@ -191,21 +196,20 @@ int main(void)
 	glBindVertexArray(0);
 
 
-	
 
 
 	// camera stuff
-	glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
 	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 cameraDirection = glm::normalize(cameraPosition - cameraTarget);
 
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-	glm::vec3 cameraUp;
 
 	glEnable(GL_DEPTH_TEST);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	const float radius = 10.0f;
+
+	float time;
 
 
 	/* Loop until the user closes the window */
@@ -225,8 +229,11 @@ int main(void)
 		int modelMatrixLocation = glGetUniformLocation(ourShader.ID, "modelMatrix");
 		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
+		
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
 		glm::mat4 viewMatrix = glm::mat4(1.0f);
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -5.0f));
+		viewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
 		int viewMatrixLocation = glGetUniformLocation(ourShader.ID, "viewMatrix");
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
@@ -234,6 +241,9 @@ int main(void)
 		projectionMatrix = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
 		int projectionMatrixLocation = glGetUniformLocation(ourShader.ID, "projectionMatrix");
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+		time = glfwGetTime();
+		ourShader.setFloat("time", time);
 
 		ourShader.use();
 
@@ -298,7 +308,7 @@ void GenerateGridOfPoints(float* pointGrid, int gridHeight, int gridLength, floa
 }
 
 void CenterGrid(float* pointGrid, int indicesInPointGrid, int gridHeight, int gridLength, float spaceBetweenPoints) {
-		// center point grid
+
 	for (int i = 0; i < indicesInPointGrid; i++) {
 		// displace x axis
 		if (i % 3 == 0) {
@@ -317,10 +327,14 @@ void GenerateGridIndices(unsigned int* indiceArray, int gridLength, int indices)
 	1, gridLength, (gridLength + 1)
 	};
 
+	int offset = 0;
 	int increment = 0;
-	for (int j = 0; j < (indices / 6); j++) {
+	for (int j = 0; j < indices / 6; j++) {
+		if (j != 0 && j % (gridLength - 1) == 0) {
+			offset = offset + 1;
+		}
 		for (int i = 0; i < 6; i++) {
-			indiceArray[increment] = quadIndices[i] + (j * 1);
+			indiceArray[increment] = quadIndices[i] + j + offset;
 			increment++;
 		}
 	}
@@ -343,5 +357,32 @@ void processInput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
+
+	float cameraSpeed = 0.05f;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		cameraPosition += cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		cameraPosition -= cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		cameraPosition -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		cameraPosition += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE) {
+		// toggle wireframe mode
+		if (isWireframeActive == true) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			isWireframeActive = false;
+		}
+		else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			isWireframeActive = true;
+		}
+	}
+
 }
 

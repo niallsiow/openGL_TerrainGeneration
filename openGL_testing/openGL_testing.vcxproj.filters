@@ -20,9 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="storage.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="shader_s.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -31,8 +28,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragmentShader.frag" />
-    <None Include="vertex.vert" />
-    <None Include="smoothSine.vert" />
+    <None Include="Shaders\fragmentShader.frag" />
+    <None Include="Shaders\smoothSine.vert" />
+    <None Include="Shaders\vertex.vert" />
+    <None Include="Shaders\vertTest.vert" />
   </ItemGroup>
 </Project>

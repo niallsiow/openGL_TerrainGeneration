@@ -76,77 +76,7 @@ int main(void)
 
 	Shader ourShader("Shaders/smoothSine.vert", "Shaders/fragmentShader.frag");
 
-	int width, height, nrChannels;
-	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 
-	unsigned int texture1;
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-
-
-	if (data) {
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "Failed to load texture" << std::endl;
-	}
-
-	stbi_image_free(data);
-
-	float ebo_vertices[] = {
-		// positions			// colors			// texture co-ordinates
-		 0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f,	// top right
-		 0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // bottom left
-		-0.5f, 0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f, 1.0f	// top left
-
-	};
-
-
-	float cubeVertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
 
 
 	float spaceBetweenPoints = 0.05f;
@@ -163,9 +93,7 @@ int main(void)
 
 	int numberOfTrianglesInGrid = 2 * (gridHeight - 1) * (gridLength - 1);
 	int indicesToDrawGridTriangles = numberOfTrianglesInGrid * 3;
-
 	unsigned int*  gridIndices = new unsigned int[indicesToDrawGridTriangles];
-
 	GenerateGridIndices(gridIndices, gridLength, indicesToDrawGridTriangles);
 
 
@@ -223,15 +151,13 @@ int main(void)
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+		// grid stuff
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
 		modelMatrix = glm::rotate(modelMatrix, glm::radians(20.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		int modelMatrixLocation = glGetUniformLocation(ourShader.ID, "modelMatrix");
 		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
 		
-		float camX = sin(glfwGetTime()) * radius;
-		float camZ = cos(glfwGetTime()) * radius;
 		glm::mat4 viewMatrix = glm::mat4(1.0f);
 		viewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
 		int viewMatrixLocation = glGetUniformLocation(ourShader.ID, "viewMatrix");
@@ -242,17 +168,17 @@ int main(void)
 		int projectionMatrixLocation = glGetUniformLocation(ourShader.ID, "projectionMatrix");
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
+		
 		time = glfwGetTime();
 		ourShader.setFloat("time", time);
-
-		ourShader.use();
 
 
 		// draw grid
 		glBindVertexArray(gridVAO);
-
 		glDrawElements(GL_TRIANGLES, indicesToDrawGridTriangles, GL_UNSIGNED_INT, 0);
+		
 
+		ourShader.use();
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
@@ -354,10 +280,12 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 void processInput(GLFWwindow *window) {
+	// close window
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
 
+	// camera input
 	float cameraSpeed = 0.05f;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		cameraPosition += cameraSpeed * cameraFront;
@@ -372,8 +300,8 @@ void processInput(GLFWwindow *window) {
 		cameraPosition += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE) {
-		// toggle wireframe mode
+	// toggle wireframe mode
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 		if (isWireframeActive == true) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			isWireframeActive = false;
